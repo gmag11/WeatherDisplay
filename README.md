@@ -7,6 +7,7 @@ First, I hardcoded my location geographical coordinates, but, as I was playing w
 Using this Geolocation and NTP syncronization, it is only needed to add WiFi information (SSID and password) and your Google and Forecast.io secret API keys to get it working.
 ##Dependances
 SSD1306 OLED library: https://github.com/squix78/esp8266-oled-ssd1306
+
 NTPClient library: https://github.com/gmag11/NtpClient
 ##Connection
 OLED display is controlled using I2C protocol. Pins used on ESP8266 are GPIO0 fro SCA and GPIO14 fro SCL.
