@@ -9,4 +9,5 @@ Using this Geolocation and NTP syncronization, it is only needed to add WiFi inf
 SSD1306 OLED library: https://github.com/squix78/esp8266-oled-ssd1306
 NTPClient library: https://github.com/gmag11/NtpClient
 ##Connection
-OLED display is controlled using I2C protocol. Pins used on ESP8266 are 
+OLED display is controlled using I2C protocol. Pins used on ESP8266 are GPIO0 fro SCA and GPIO14 fro SCL.
+![Board Connection](https://raw.githubusercontent.com/gmag11/WeatherDisplay/master/img/WeatherDisplay.jpg)
