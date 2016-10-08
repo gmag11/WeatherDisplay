@@ -31,15 +31,6 @@
 // For a connection via I2C using Wire include
 #include <Wire.h>  // Only needed for Arduino 1.6.5 and earlier
 #include <SSD1306.h> // alias for `#include "SSD1306Wire.h"`
-// or #include "SH1106.h" alis for `#include "SH1106Wire.h"`
-// For a connection via I2C using brzo_i2c (must be installed) include
-// #include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
-// #include "SSD1306Brzo.h"
-// #include "SH1106Brzo.h"
-// For a connection via SPI include
-// #include <SPI.h> // Only needed for Arduino 1.6.5 and earlier
-// #include "SSD1306Spi.h"
-// #include "SH1106SPi.h"
 
 // Include the UI lib
 #include <OLEDDisplayUi.h>
@@ -50,28 +41,10 @@
 #include <ESP8266WiFi.h>
 
 #include <Ticker.h>
-// Use the corresponding display class:
-
-// Initialize the OLED display using SPI
-// D5 -> CLK
-// D7 -> MOSI (DOUT)
-// D0 -> RES
-// D2 -> DC
-// D8 -> CS
-// SSD1306Spi        display(D0, D2, D8);
-// or
-// SH1106Spi         display(D0, D2);
-
-// Initialize the OLED display using brzo_i2c
-// D3 -> SDA
-// D5 -> SCL
-// SSD1306Brzo display(0x3c, D3, D5);
-// or
-// SH1106Brzo  display(0x3c, D3, D5);
+#include "Secret.h" // File to add secret keys for Google an ForecastIO
 
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 0, 14);
-// SH1106 display(0x3c, D3, D5);
 
 OLEDDisplayUi ui ( &display );
 
@@ -96,7 +69,7 @@ void clockOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
 
 }
 
-void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+/* void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 //  ui.disableIndicator();
 
   // Draw the clock face
@@ -135,7 +108,7 @@ void analogClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x
   x3 = ( clockCenterX + ( sin(angle) * ( clockRadius - ( clockRadius / 2 ) ) ) );
   y3 = ( clockCenterY - ( cos(angle) * ( clockRadius - ( clockRadius / 2 ) ) ) );
   display->drawLine( clockCenterX + x , clockCenterY + y , x3 + x , y3 + y);
-}
+} */
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   String timenow = String(hour())+":"+twoDigits(minute())+":"+twoDigits(second());
@@ -149,11 +122,13 @@ void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t 
 
 float temperature = 0.0f;
 float apparentTemp = 0.0f;
-String forecastIOhost = "api.forecast.io";
-IPAddress forecastIOip(69,164,223,38);
-String forecastIOkey = "0cea6bae4e62122887b05564a5362562";
-float lat = 40.372169f;
-float lon = -3.739507;
+String forecastIOhost = "api.forecast.io"; // forecast.io host
+IPAddress forecastIOip(69,164,223,38); 
+#ifndef SECRET
+String forecastIOkey = "YOUR FORECAST.IO SECRET KEY";
+#endif
+float lat = 0.0f;
+float lon = 0.0f;
 String forecastIOurl = "/forecast/";
 String forecastIOparameters = "?units=si&exclude=minutely,hourly,daily,alerts,flags";
 String forecastIOfingerprint = "89 83 31 6f 29 89 bd 18 0d 41 59 16 00 fe 57 98 77 d8 71 8e";
@@ -161,7 +136,9 @@ static WiFiClientSecure wifiClient;
 
 String googleApisHost = "www.googleapis.com";
 String googleApiUrl = "/geolocation/v1/geolocate";
-String googleApiKey = "AIzaSyCBLyn_VBxT2jNhOSR9Hyt_A5ApY_EoFn8";
+#ifndef SECRET
+String googleApiKey = "YOUR GOOGLE API KEY";
+#endif
 String googleApiFingerprint = "bb 2b 55 5b 37 a3 7e a8 75 d9 3b da 64 96 c7 f5 7d 6a 06 c4";
 IPAddress googleApiIP(216,58,214,170);
 
@@ -172,6 +149,7 @@ String MACtoString(uint8_t* macAddress) {
 	return  String(macStr);
 }
 
+// Function to get a list of surrounding WiFi signals in JSON format to get location via Google Location API
 String getSurroundingWiFiJson() {
 	String wifiArray = "[";
 
@@ -190,6 +168,7 @@ String getSurroundingWiFiJson() {
 	return wifiArray;
 }
 
+// Calls Google Location API to get current location using surrounding WiFi signals inf
 void getGeoFromWiFi() {
 	String response = "";
 	if (wifiClient.connect(googleApisHost.c_str(), 443)) {
@@ -240,6 +219,7 @@ void getGeoFromWiFi() {
 	}
 }
 
+// Gets temp info from ForecastIO API
 void getTemperature() {
 	//static int i = 0;
 	String response = "";
@@ -289,7 +269,8 @@ void getTemperature() {
 
 }
 
-void temperatureFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+
+/* void temperatureFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 	String temp = String (temperature)+"ºC";
 	
 	display->setTextAlignment(TEXT_ALIGN_CENTER);
@@ -297,8 +278,9 @@ void temperatureFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x
 	display->drawString(clockCenterX + x, clockCenterY + y, temp);
 	temp = "a"+String(apparentTemp) + "ºC";
 	display->drawString(clockCenterX + x, 16 + y, temp);
-}
+}*/
 
+// Displays clock and temperature in OLED
 void tempClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 	String timenow = String(hour()) + ":" + twoDigits(minute()) + ":" + twoDigits(second());
 	//String datenow = twoDigits(day()) + "/" + twoDigits(month()) + "/" + String(year());
@@ -323,18 +305,23 @@ OverlayCallback overlays[] = { clockOverlay };
 int overlaysCount = 1;
 Ticker tkTemp;
 
+#ifndef SECRET
+char[] ssid = "YOUR SSID";
+char[] passwd = "YOUR WIFI PASSWORD";
+#endif
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
-  WiFi.begin("Virus_Detected!!!", "LaJunglaSigloXX1@.");
+  WiFi.begin(ssid, passwd);
   
   while (!WiFi.isConnected()) {
 	  Serial.print(".");
 	  delay(100);
   }
-  NTP.begin();
+  NTP.begin(); // Starts NTP client
   NTP.setDayLight(true);
-  NTP.setTimeZone(1);
+  NTP.setTimeZone(1); // TimeZone CET
   Serial.println();
 	// The ESP is capable of rendering 60fps in 80Mhz mode
 	// but that won't give you much time for anything else
@@ -370,11 +357,11 @@ void setup() {
 
   display.flipScreenVertically();
 
-  unsigned long secsSinceStart = millis();
+  //unsigned long secsSinceStart = millis();
   // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-  const unsigned long seventyYears = 2208988800UL;
+  //const unsigned long seventyYears = 2208988800UL;
   // subtract seventy years:
-  unsigned long epoch = secsSinceStart - seventyYears * SECS_PER_HOUR;
+  //unsigned long epoch = secsSinceStart - seventyYears * SECS_PER_HOUR;
   //setTime(epoch);
   getGeoFromWiFi();
   getTemperature();
@@ -388,8 +375,8 @@ void loop() {
     // You can do some work here
     // Don't do stuff if you are below your
     // time budget.
-	  if ((millis() - lastTime) > (1000 * 300)) {
-		  getTemperature();
+	  if ((millis() - lastTime) > (1000 * 300)) { // Every 5 minutes get temerature info
+		  getTemperature(); 
 		  lastTime = millis();
 	  }
     delay(remainingTimeBudget);
